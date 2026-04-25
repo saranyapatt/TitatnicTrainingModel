@@ -1,11 +1,7 @@
-import itertools
-import kagglehub
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
 import plot_confusion_matrix
 import seaborn as sns
-import numpy as np
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -23,8 +19,8 @@ data = pd.read_csv(new_path)
 data_test_ori = pd.read_csv(test_path)
 data_test = pd.read_csv(test_path)
 
-data['title'] = data['Name'].str.extract(',\\s*([A-Za-z]+)\.', expand=False)
-data_test['title'] = data_test['Name'].str.extract(',\\s*([A-Za-z]+)\.', expand=False)
+data['title'] = data['Name'].str.extract(r',\s*([A-Za-z]+)\.', expand=False)
+data_test['title'] = data_test['Name'].str.extract(r',\\s*([A-Za-z]+)\.', expand=False)
 
 title_mapping = {
     "Mr": "Mr",
@@ -35,17 +31,17 @@ title_mapping = {
 }
 
 data['title_group'] = data['title'].map(title_mapping)
-data_test['title_group'] = data['title'].map(title_mapping)
+data_test['title_group'] = data_test['title'].map(title_mapping)
 
 title_dummies = pd.get_dummies(data['title_group'], prefix='Title', dtype=int)
 title_dummies_test = pd.get_dummies(data_test['title_group'], prefix='Title', dtype=int)
-
 data = pd.concat([data, title_dummies], axis=1)
 data_test = pd.concat([data_test, title_dummies_test], axis=1)
+data_test = data_test.reindex(columns=data.columns, fill_value=0)
+
 
 data = data.drop(['Name', 'title', 'title_group'], axis=1)
 data_test = data_test.drop(['Name', 'title', 'title_group'], axis=1)
-
 
 data['Sex'] = data['Sex'].map({'male': 0, 'female': 1})
 data_test['Sex'] = data_test['Sex'].map({'male': 0, 'female': 1})
@@ -68,8 +64,7 @@ for title in titles:
 
 data['Age'] = data['Age'].fillna(data['Age'].median())
 
-titles_test = ['Title_Mr', 'Title_Miss_Mrs', 'Title_Master', 'Title_Officer']
-for title in titles_test:
+for title in titles:
     median_val = data_test[data_test[title] == 1]['Age'].median()
     data_test.loc[(data_test['Age'].isnull()) & (data_test[title] == 1), 'Age'] = median_val
 
@@ -88,37 +83,21 @@ data.drop('PassengerId', axis=1, inplace=True)
 data_test.drop('PassengerId', axis=1, inplace=True)
 
 data_y = data['Survived']
-# data_y_test = data_test['Survived']
 data.drop('Survived', axis=1, inplace=True)
-# data_test.drop('Survived', axis=1, inplace=True)
-
-# scaler = StandardScaler()
-#
-# scaler.fit(data)
-# X_train = scaler.transform(data)
-# X_test = scaler.transform(data_test)
-#
-# from sklearn.neighbors import KNeighborsClassifier
-# classifier = KNeighborsClassifier(n_neighbors=3)
-# classifier.fit(X_train, data_y)
-# y_pred = classifier.predict(X_test)
-
-X_train, X_test, y_train, y_test = train_test_split(data, data_y, test_size=0.15, random_state=42)
+data_test.drop('Survived', axis=1, inplace=True)
 scaler = StandardScaler()
 
-scaler.fit(X_train)
-X_train = scaler.transform(X_train)
-X_test = scaler.transform(X_test)
+scaler.fit(data)
+X_train = scaler.transform(data)
+X_test = scaler.transform(data_test)
 
-from sklearn.neighbors import KNeighborsClassifier
-classifier = KNeighborsClassifier(n_neighbors=3)
-classifier.fit(X_train, y_train)
+classifier = KNeighborsClassifier(n_neighbors=7)
+classifier.fit(X_train, data_y)
 y_pred = classifier.predict(X_test)
-cm = confusion_matrix(y_test, y_pred)
-disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Not Survived', 'Survived'])
-disp.plot(cmap='Blues')
-plt.title('Confusion Matrix on Validation Set')
-plt.show()
-from sklearn.metrics import accuracy_score
-accuracy = accuracy_score(y_test, y_pred)
-print(f"Accuracy: {accuracy * 100:.2f}%")
+
+submission = pd.DataFrame({
+    'PassengerId': data_test_ori['PassengerId'],
+    'Survived': y_pred
+})
+
+submission.to_csv('submission.csv', index=False)
