@@ -6,13 +6,13 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
-
+from dotenv import load_dotenv
 # kagglehub.login()
 # Download latest version
 # path = kagglehub.competition_download('titanic')
-# new_path = os.path.join(path + "/Users/mix/.cache/kagglehub/competitions/titanic/train.csv")
-new_path = os.path.join("/Users/mix/.cache/kagglehub/competitions/titanic/train.csv")
-test_path = os.path.join("/Users/mix/.cache/kagglehub/competitions/titanic/test.csv")
+load_dotenv()
+new_path = os.path.join(os.getenv('PATH2TRAIN'))
+test_path = os.path.join(os.getenv('PATH2TEST'))
 
 data_ori = pd.read_csv(new_path)
 data = pd.read_csv(new_path)
