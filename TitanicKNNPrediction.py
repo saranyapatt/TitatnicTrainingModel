@@ -92,7 +92,7 @@ scaler.fit(data)
 X_train = scaler.transform(data)
 X_test = scaler.transform(data_test)
 
-classifier = KNeighborsClassifier(n_neighbors=7)
+classifier = KNeighborsClassifier(n_neighbors=5)
 classifier.fit(X_train, data_y)
 y_pred = classifier.predict(X_test)
 
