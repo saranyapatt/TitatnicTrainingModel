@@ -1,27 +1,19 @@
 import os
 import pandas as pd
-import plot_confusion_matrix
-import seaborn as sns
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from dotenv import load_dotenv
 
-# kagglehub.login()
-# Download latest version
-# path = kagglehub.competition_download('titanic')
 load_dotenv()
-new_path = os.path.join(os.getenv('PATH2TRAIN'))
-test_path = os.path.join(os.getenv('PATH2TEST'))
+new_path = os.getenv('PATH2TRAIN')
+test_path = os.getenv('PATH2TEST')
 
-data_ori = pd.read_csv(new_path)
 data = pd.read_csv(new_path)
 data_test_ori = pd.read_csv(test_path)
 data_test = pd.read_csv(test_path)
 
 data['title'] = data['Name'].str.extract(r',\s*([A-Za-z]+)\.', expand=False)
-data_test['title'] = data_test['Name'].str.extract(r',\\s*([A-Za-z]+)\.', expand=False)
+data_test['title'] = data_test['Name'].str.extract(r',\s*([A-Za-z]+)\.', expand=False)
 
 title_mapping = {
     "Mr": "Mr",
